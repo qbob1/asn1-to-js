@@ -154,6 +154,11 @@ class ASN1Database {
                 if (typeDef.type === 'BIT STRING' && typeDef.named_bits) {
                     structure.namedBits = typeDef.named_bits;
                 }
+
+                // Handle INTEGER with named numbers (enumerations)
+                if (typeDef.type === 'INTEGER' && typeDef.named_numbers) {
+                    structure.namedNumbers = typeDef.named_numbers;
+                }
             }
         }
 
@@ -207,6 +212,11 @@ class ASN1Database {
                     if (typeDef.type === 'BIT STRING' && typeDef.named_bits) {
                         field.namedBits = typeDef.named_bits;
                     }
+
+                    // Handle INTEGER with named numbers (enumerations)
+                    if (typeDef.type === 'INTEGER' && typeDef.named_numbers) {
+                        field.namedNumbers = typeDef.named_numbers;
+                    }
                 }
 
                 // Add validators from constraints
@@ -257,6 +267,11 @@ class ASN1Database {
                     // Handle special types
                     if (typeDef.type === 'BIT STRING' && typeDef.named_bits) {
                         alternative.namedBits = typeDef.named_bits;
+                    }
+
+                    // Handle INTEGER with named numbers (enumerations)
+                    if (typeDef.type === 'INTEGER' && typeDef.named_numbers) {
+                        alternative.namedNumbers = typeDef.named_numbers;
                     }
                 }
 
@@ -353,6 +368,14 @@ class ASN1Database {
                 }
                 output += '\n';
 
+                // Show named numbers for INTEGER enumerations
+                if (field.namedNumbers && field.namedNumbers.length > 0) {
+                    output += `${spaces}    Named values:\n`;
+                    for (const named of field.namedNumbers) {
+                        output += `${spaces}      ${named.value}: ${named.name}\n`;
+                    }
+                }
+
                 if (field.validators && field.validators.length > 0) {
                     for (const validator of field.validators) {
                         if (validator.type === 'size') {
@@ -377,6 +400,14 @@ class ASN1Database {
             output += `${spaces}Alternatives:\n`;
             for (const alt of structure.alternatives) {
                 output += `${spaces}  ${alt.name} (${alt.type})\n`;
+
+                // Show named numbers for INTEGER enumerations
+                if (alt.namedNumbers && alt.namedNumbers.length > 0) {
+                    output += `${spaces}    Named values:\n`;
+                    for (const named of alt.namedNumbers) {
+                        output += `${spaces}      ${named.value}: ${named.name}\n`;
+                    }
+                }
 
                 if (alt.validators && alt.validators.length > 0) {
                     for (const validator of alt.validators) {

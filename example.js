@@ -7,6 +7,8 @@
  * - Accessing validators
  * - Working with nested structures (sequences with named types)
  * - Handling choice items with type notation
+ * - Working with INTEGER named values (enumerations)
+ * - Identifying optional vs mandatory fields
  */
 
 const ASN1Database = require('./asn1-query');
@@ -165,6 +167,22 @@ if (maxUint31) {
     console.log(`  Kind: ${maxUint31.kind}`);
     console.log(`  Type: ${maxUint31.type}`);
     console.log(`  Value: ${maxUint31.value}`);
+}
+console.log('\n' + '='.repeat(80) + '\n');
+
+// Example 9: Working with INTEGER named values (enumerations)
+console.log('Example 9: Working with INTEGER named values (enumerations)');
+console.log('-'.repeat(80));
+const algoParam = db.getByName('AlgoParameter');
+if (algoParam && algoParam.fields) {
+    const algorithmIDField = algoParam.fields.find(f => f.name === 'algorithmID');
+    if (algorithmIDField && algorithmIDField.namedNumbers) {
+        console.log(`Field "${algorithmIDField.name}" is an INTEGER with named values:\n`);
+        for (const named of algorithmIDField.namedNumbers) {
+            console.log(`  ${named.value}: ${named.name}`);
+        }
+        console.log('\nThis allows validation and mapping between numeric values and their labels.');
+    }
 }
 console.log('\n' + '='.repeat(80) + '\n');
 

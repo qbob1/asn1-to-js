@@ -96,6 +96,11 @@ convert_type_def({'BIT STRING', NamedBits}) ->
         type => <<"BIT STRING">>,
         named_bits => lists:map(fun convert_named_bit/1, NamedBits)
     };
+convert_type_def({'INTEGER', NamedNumbers}) when is_list(NamedNumbers) ->
+    #{
+        type => <<"INTEGER">>,
+        named_numbers => lists:map(fun convert_named_number/1, NamedNumbers)
+    };
 convert_type_def(TypeName) when is_atom(TypeName) ->
     #{type => atom_to_binary(TypeName, utf8)};
 convert_type_def(Other) ->
@@ -163,6 +168,14 @@ convert_named_bit({Name, Value}) ->
         value => Value
     };
 convert_named_bit(Other) ->
+    #{raw => list_to_binary(io_lib:format("~p", [Other]))}.
+
+convert_named_number({Name, Value}) ->
+    #{
+        name => atom_to_binary(Name, utf8),
+        value => Value
+    };
+convert_named_number(Other) ->
     #{raw => list_to_binary(io_lib:format("~p", [Other]))}.
 
 format_json(Data) ->

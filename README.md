@@ -8,6 +8,8 @@ This repository provides a JavaScript query structure for ASN.1 definitions stor
 - **Validator extraction** based on constraints (size, range, etc.)
 - **Nested structure support** for enums and sequences with named types
 - **Type notation** for sequence of choice items including constraints
+- **INTEGER named values** (enumerations) with value-to-label mappings
+- **Optional field detection** clearly marking OPTIONAL, DEFAULT, and MANDATORY fields
 
 ## Files
 
@@ -91,10 +93,15 @@ Each definition structure contains:
       name: "fieldName",
       type: "OCTET STRING",
       position: 1,
-      optional: true,
-      hasDefault: false,
+      optional: true,        // true if OPTIONAL, false if mandatory
+      hasDefault: false,     // true if has DEFAULT value
       tags: [{ class: "CONTEXT", number: 0 }],
-      validators: [...]
+      validators: [...],
+
+      // For INTEGER with named values (enumerations)
+      namedNumbers: [
+        { name: "valueName", value: 1 }
+      ]
     }
   ],
 
@@ -184,6 +191,53 @@ for (const validator of field.validators) {
     console.log(validator.validate("x")); // true
     console.log(validator.validate("xx")); // false
 }
+```
+
+### Example 5: INTEGER with Named Values (Enumerations)
+
+INTEGER fields can have named values that map numeric values to labels:
+
+```javascript
+const db = ASN1Database.fromFile('./asn1_definitions.json');
+const algoParam = db.getByName('AlgoParameter');
+const algorithmIDField = algoParam.fields.find(f => f.name === 'algorithmID');
+
+// Access named values
+for (const named of algorithmIDField.namedNumbers) {
+    console.log(`${named.value}: ${named.name}`);
+}
+// Output:
+//   1: milenage
+//   2: tuak
+//   3: usim-test-algorithm
+
+// Create a value-to-name mapper
+const valueToName = Object.fromEntries(
+    algorithmIDField.namedNumbers.map(n => [n.value, n.name])
+);
+console.log(valueToName[1]); // "milenage"
+```
+
+### Example 6: Optional vs Mandatory Fields
+
+Fields are clearly marked as optional or mandatory:
+
+```javascript
+const db = ASN1Database.fromFile('./asn1_definitions.json');
+const algoParam = db.getByName('AlgoParameter');
+
+for (const field of algoParam.fields) {
+    const status = field.optional ? 'OPTIONAL' :
+                   field.hasDefault ? 'DEFAULT' :
+                   'MANDATORY';
+    console.log(`${field.name}: ${status}`);
+}
+// Output:
+//   algorithmID: MANDATORY
+//   algorithmOptions: MANDATORY
+//   ...
+//   authCounterMax: OPTIONAL
+//   numberOfKeccak: DEFAULT
 ```
 
 ## Running the Example
