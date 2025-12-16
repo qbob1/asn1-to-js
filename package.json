@@ -1,0 +1,39 @@
+{
+  "name": "asn1-to-js",
+  "version": "1.0.0",
+  "description": "JavaScript query structure for ASN.1 definitions with support for tags, validators, named integers, and nested structures",
+  "main": "asn1-query.js",
+  "browser": "asn1-query-browser.js",
+  "scripts": {
+    "test": "node example.js",
+    "convert": "erlc convert_to_json.erl && erl -noshell -s convert_to_json main",
+    "serve": "python3 -m http.server 8000"
+  },
+  "keywords": [
+    "asn1",
+    "asn.1",
+    "query",
+    "schema",
+    "validation",
+    "telecom",
+    "sim",
+    "euicc"
+  ],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "asn1-query.js",
+    "asn1-query-browser.js",
+    "asn1_definitions.json",
+    "convert_to_json.erl",
+    "profile.asn1db",
+    "README.md",
+    "example.js",
+    "example.html",
+    "example-standalone.html"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qbob1/asn1-to-js.git"
+  }
+}

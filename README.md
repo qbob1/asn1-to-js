@@ -16,9 +16,12 @@ This repository provides a JavaScript query structure for ASN.1 definitions stor
 - `profile.asn1db` - ASN.1 database in Erlang ETS format
 - `start_here` - Instructions for loading the database in Erlang
 - `convert_to_json.erl` - Erlang script to convert ETS database to JSON
-- `asn1_definitions.json` - JSON representation of the ASN.1 database
-- `asn1-query.js` - JavaScript query structure module
-- `example.js` - Example usage demonstrating all features
+- `asn1_definitions.json` - JSON representation of the ASN.1 database (71 definitions)
+- `asn1-query.js` - JavaScript query structure module (Node.js)
+- `asn1-query-browser.js` - JavaScript query structure module (Browser/Universal)
+- `example.js` - Node.js example demonstrating all features
+- `example.html` - Browser example with fetch
+- `example-standalone.html` - Standalone browser example (no server needed)
 
 ## Quick Start
 
@@ -31,7 +34,7 @@ erl -noshell -s convert_to_json main
 
 This creates `asn1_definitions.json` from `profile.asn1db`.
 
-### 2. Use in JavaScript
+### 2. Use in Node.js
 
 ```javascript
 const ASN1Database = require('./asn1-query');
@@ -53,13 +56,71 @@ const results = db.search('PE-');
 const names = db.getAllNames();
 ```
 
+### 3. Use in Browser
+
+**Option A: Load from URL**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="asn1-query-browser.js"></script>
+</head>
+<body>
+    <script>
+        // Load database from URL
+        ASN1Database.fromURL('asn1_definitions.json')
+            .then(db => {
+                console.log('Loaded definitions:', db.getAllNames().length);
+
+                const def = db.getByName('AlgoParameter');
+                console.log(db.prettyPrint(def));
+            });
+    </script>
+</body>
+</html>
+```
+
+**Option B: Embed data inline**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="asn1-query-browser.js"></script>
+</head>
+<body>
+    <script>
+        // Fetch and embed the data
+        fetch('asn1_definitions.json')
+            .then(response => response.json())
+            .then(data => {
+                const db = ASN1Database.fromData(data);
+                console.log('Database loaded!');
+
+                // Use the database
+                const def = db.getByName('ProprietaryInfo');
+                console.log(def);
+            });
+    </script>
+</body>
+</html>
+```
+
+**Option C: Use the example files**
+- Open `example.html` in a browser (requires local web server)
+- Open `example-standalone.html` directly in any browser (no server needed)
+
 ## API Reference
 
 ### ASN1Database
 
-#### Constructor
+#### Static Methods (Constructors)
 
+**Node.js:**
 - `ASN1Database.fromFile(filename)` - Load database from JSON file
+
+**Browser:**
+- `ASN1Database.fromURL(url)` - Async load database from URL (returns Promise)
+- `ASN1Database.fromData(data)` - Load database from pre-loaded JSON data
 
 #### Query Methods
 
