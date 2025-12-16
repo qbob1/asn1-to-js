@@ -162,7 +162,21 @@ Each definition structure contains:
       // For INTEGER with named values (enumerations)
       namedNumbers: [
         { name: "valueName", value: 1 }
-      ]
+      ],
+
+      // Enum helper object for named integers
+      enum: {
+        getValue(name),      // Get numeric value from name
+        getName(value),      // Get name from numeric value
+        hasName(name),       // Check if name exists
+        hasValue(value),     // Check if value exists
+        isValid(valueOrName), // Validate value or name
+        getNames(),          // Get all names as array
+        getValues(),         // Get all values as array
+        toValueMap(),        // Create {value: name} map
+        toNameMap(),         // Create {name: value} map
+        toString()           // Format as string
+      }
     }
   ],
 
@@ -256,14 +270,14 @@ for (const validator of field.validators) {
 
 ### Example 5: INTEGER with Named Values (Enumerations)
 
-INTEGER fields can have named values that map numeric values to labels:
+INTEGER fields can have named values that map numeric values to labels. Each field with named integers includes an `enum` helper object for easy conversion and validation:
 
 ```javascript
 const db = ASN1Database.fromFile('./asn1_definitions.json');
 const algoParam = db.getByName('AlgoParameter');
 const algorithmIDField = algoParam.fields.find(f => f.name === 'algorithmID');
 
-// Access named values
+// Access raw named values
 for (const named of algorithmIDField.namedNumbers) {
     console.log(`${named.value}: ${named.name}`);
 }
@@ -272,11 +286,55 @@ for (const named of algorithmIDField.namedNumbers) {
 //   2: tuak
 //   3: usim-test-algorithm
 
-// Create a value-to-name mapper
-const valueToName = Object.fromEntries(
-    algorithmIDField.namedNumbers.map(n => [n.value, n.name])
-);
-console.log(valueToName[1]); // "milenage"
+// Convert name to value (for building data structures)
+const data = {
+    algorithmID: algorithmIDField.enum.getValue('milenage')  // Returns 1
+};
+
+// Convert value to name (for parsing data)
+const receivedData = { algorithmID: 2 };
+const name = algorithmIDField.enum.getName(receivedData.algorithmID);  // Returns "tuak"
+
+// Validate values or names
+algorithmIDField.enum.isValid(1);           // true
+algorithmIDField.enum.isValid('milenage');  // true
+algorithmIDField.enum.isValid(99);          // false
+algorithmIDField.enum.hasName('tuak');      // true
+algorithmIDField.enum.hasValue(3);          // true
+
+// Get all names or values (for UI dropdowns, etc.)
+const allNames = algorithmIDField.enum.getNames();    // ['milenage', 'tuak', 'usim-test-algorithm']
+const allValues = algorithmIDField.enum.getValues();  // [1, 2, 3]
+
+// Create lookup maps for O(1) access
+const valueToName = algorithmIDField.enum.toValueMap();  // {1: 'milenage', 2: 'tuak', ...}
+const nameToValue = algorithmIDField.enum.toNameMap();   // {'milenage': 1, 'tuak': 2, ...}
+```
+
+**Complete example:**
+```javascript
+// Create data using name
+function createAlgoParameter(algorithmName) {
+    const field = db.getByName('AlgoParameter').fields.find(f => f.name === 'algorithmID');
+
+    if (!field.enum.hasName(algorithmName)) {
+        throw new Error(`Invalid algorithm: ${algorithmName}`);
+    }
+
+    return {
+        algorithmID: field.enum.getValue(algorithmName)
+    };
+}
+
+// Parse data using value
+function parseAlgoParameter(data) {
+    const field = db.getByName('AlgoParameter').fields.find(f => f.name === 'algorithmID');
+
+    return {
+        algorithmID: data.algorithmID,
+        algorithmName: field.enum.getName(data.algorithmID)
+    };
+}
 ```
 
 ### Example 6: Optional vs Mandatory Fields

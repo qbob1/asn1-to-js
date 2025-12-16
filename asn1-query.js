@@ -158,11 +158,79 @@ class ASN1Database {
                 // Handle INTEGER with named numbers (enumerations)
                 if (typeDef.type === 'INTEGER' && typeDef.named_numbers) {
                     structure.namedNumbers = typeDef.named_numbers;
+                    structure.enum = this._createEnumHelper(typeDef.named_numbers);
                 }
             }
         }
 
         return structure;
+    }
+
+    /**
+     * Create enum helper for INTEGER with named values
+     */
+    _createEnumHelper(namedNumbers) {
+        const helper = {
+            // Array of all named numbers
+            values: namedNumbers,
+
+            // Get numeric value from name
+            getValue(name) {
+                const found = namedNumbers.find(n => n.name === name);
+                return found ? found.value : undefined;
+            },
+
+            // Get name from numeric value
+            getName(value) {
+                const found = namedNumbers.find(n => n.value === value);
+                return found ? found.name : undefined;
+            },
+
+            // Check if name exists
+            hasName(name) {
+                return namedNumbers.some(n => n.name === name);
+            },
+
+            // Check if value exists
+            hasValue(value) {
+                return namedNumbers.some(n => n.value === value);
+            },
+
+            // Validate a value or name
+            isValid(valueOrName) {
+                if (typeof valueOrName === 'string') {
+                    return this.hasName(valueOrName);
+                }
+                return this.hasValue(valueOrName);
+            },
+
+            // Get all names
+            getNames() {
+                return namedNumbers.map(n => n.name);
+            },
+
+            // Get all values
+            getValues() {
+                return namedNumbers.map(n => n.value);
+            },
+
+            // Create a value-to-name map
+            toValueMap() {
+                return Object.fromEntries(namedNumbers.map(n => [n.value, n.name]));
+            },
+
+            // Create a name-to-value map
+            toNameMap() {
+                return Object.fromEntries(namedNumbers.map(n => [n.name, n.value]));
+            },
+
+            // Format for display
+            toString() {
+                return namedNumbers.map(n => `${n.value}:${n.name}`).join(', ');
+            }
+        };
+
+        return helper;
     }
 
     /**
@@ -216,6 +284,7 @@ class ASN1Database {
                     // Handle INTEGER with named numbers (enumerations)
                     if (typeDef.type === 'INTEGER' && typeDef.named_numbers) {
                         field.namedNumbers = typeDef.named_numbers;
+                        field.enum = this._createEnumHelper(typeDef.named_numbers);
                     }
                 }
 
@@ -272,6 +341,7 @@ class ASN1Database {
                     // Handle INTEGER with named numbers (enumerations)
                     if (typeDef.type === 'INTEGER' && typeDef.named_numbers) {
                         alternative.namedNumbers = typeDef.named_numbers;
+                        alternative.enum = this._createEnumHelper(typeDef.named_numbers);
                     }
                 }
 
