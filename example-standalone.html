@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASN.1 Query Structure - Standalone Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 3px;
+        }
+        .example {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .output {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 3px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>ASN.1 Query Structure - Standalone Demo</h1>
+
+    <div class="info">
+        <strong>Note:</strong> This is a standalone version with the data embedded inline.
+        No server or external files required - just open this HTML file in any browser!
+    </div>
+
+    <div class="example">
+        <h2>Try It Out</h2>
+        <p>Enter a definition name to look up:</p>
+        <input type="text" id="searchInput" placeholder="e.g., AlgoParameter, PEStatus" />
+        <button onclick="lookupDefinition()">Look Up</button>
+        <button onclick="showAllNames()">Show All Names</button>
+        <div id="output" class="output">Enter a name above and click "Look Up"</div>
+    </div>
+
+    <script src="asn1-query-browser.js"></script>
+    <script>
+        // Embedded sample data (subset for demo)
+        const sampleData = [
+            {
+                "name": "AlgoParameter",
+                "kind": "typedef",
+                "line": 803,
+                "checked": true,
+                "type_name": "AlgoParameter",
+                "definition": {
+                    "tags": [{"class": "UNIVERSAL", "number": 16, "tag_type": "IMPLICIT", "form": 32}],
+                    "type_def": {
+                        "type": "SEQUENCE",
+                        "components": [
+                            {
+                                "name": "algorithmID",
+                                "position": 1,
+                                "line": 804,
+                                "default": "mandatory",
+                                "tags": [{"class": "CONTEXT", "number": 0}],
+                                "type": {
+                                    "tags": [{"class": "CONTEXT", "number": 0, "tag_type": "IMPLICIT", "form": 0}],
+                                    "type_def": {
+                                        "type": "INTEGER",
+                                        "named_numbers": [
+                                            {"name": "milenage", "value": 1},
+                                            {"name": "tuak", "value": 2},
+                                            {"name": "usim-test-algorithm", "value": 3}
+                                        ]
+                                    },
+                                    "constraints": ""
+                                },
+                                "component_type": "ComponentType"
+                            },
+                            {
+                                "name": "authCounterMax",
+                                "position": 7,
+                                "line": 818,
+                                "default": "OPTIONAL",
+                                "tags": [{"class": "CONTEXT", "number": 6}],
+                                "type": {
+                                    "tags": [{"class": "CONTEXT", "number": 6, "tag_type": "IMPLICIT", "form": 0}],
+                                    "type_def": {"type": "OCTET STRING"},
+                                    "constraints": [{"type": "size", "min": 3, "max": 3}]
+                                },
+                                "component_type": "ComponentType"
+                            }
+                        ]
+                    },
+                    "constraints": ""
+                }
+            },
+            {
+                "name": "PEStatus",
+                "kind": "typedef",
+                "line": 950,
+                "checked": true,
+                "type_name": "PEStatus",
+                "definition": {
+                    "tags": [{"class": "UNIVERSAL", "number": 16, "tag_type": "IMPLICIT", "form": 32}],
+                    "type_def": {
+                        "type": "SEQUENCE",
+                        "components": [
+                            {
+                                "name": "status",
+                                "position": 2,
+                                "line": 952,
+                                "default": "mandatory",
+                                "tags": [{"class": "CONTEXT", "number": 1}],
+                                "type": {
+                                    "tags": [{"class": "CONTEXT", "number": 1, "tag_type": "IMPLICIT", "form": 0}],
+                                    "type_def": {
+                                        "type": "INTEGER",
+                                        "named_numbers": [
+                                            {"name": "ok", "value": 0},
+                                            {"name": "pe-not-supported", "value": 1},
+                                            {"name": "memory-failure", "value": 2},
+                                            {"name": "bad-values", "value": 3}
+                                        ]
+                                    },
+                                    "constraints": ""
+                                },
+                                "component_type": "ComponentType"
+                            }
+                        ]
+                    },
+                    "constraints": ""
+                }
+            }
+        ];
+
+        // Initialize database
+        const db = ASN1Database.fromData(sampleData);
+        console.log('Database loaded with sample data');
+
+        function lookupDefinition() {
+            const input = document.getElementById('searchInput').value.trim();
+            const output = document.getElementById('output');
+
+            if (!input) {
+                output.innerHTML = '<span style="color: red;">Please enter a definition name</span>';
+                return;
+            }
+
+            const def = db.getByName(input);
+
+            if (!def) {
+                output.innerHTML = `<span style="color: red;">Definition "${input}" not found</span>\n\nAvailable: ${db.getAllNames().join(', ')}`;
+                return;
+            }
+
+            output.textContent = db.prettyPrint(def);
+        }
+
+        function showAllNames() {
+            const output = document.getElementById('output');
+            const names = db.getAllNames();
+
+            output.innerHTML = `<strong>Available Definitions (${names.length}):</strong>\n\n` + names.join('\n');
+        }
+
+        // Show initial help
+        document.getElementById('output').innerHTML =
+            '<strong>Quick Start:</strong>\n\n' +
+            '1. Try searching for "AlgoParameter" to see INTEGER named values\n' +
+            '2. Try "PEStatus" to see another example\n' +
+            '3. Click "Show All Names" to see available definitions\n\n' +
+            `<em>Currently loaded: ${db.getAllNames().length} sample definitions</em>`;
+    </script>
+</body>
+</html>
