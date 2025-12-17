@@ -39,7 +39,7 @@ class ASN1Database {
                 this.byName.set(def.name, def);
             }
 
-            // Index by tag if available
+            // Index by top-level tag
             if (def.definition && def.definition.tags) {
                 for (const tag of def.definition.tags) {
                     const tagKey = `${tag.class}:${tag.number}`;
@@ -48,6 +48,49 @@ class ASN1Database {
                     }
                     this.byTag.get(tagKey).push(def);
                 }
+            }
+
+            // Also index field-level tags (from SEQUENCE fields)
+            if (def.definition && def.definition.type_def && def.definition.type_def.components) {
+                this._indexComponentTags(def.definition.type_def.components, def);
+            }
+
+            // Index CHOICE alternative tags
+            if (def.definition && def.definition.type_def && def.definition.type_def.alternatives) {
+                this._indexComponentTags(def.definition.type_def.alternatives, def);
+            }
+        }
+    }
+
+    /**
+     * Index tags from components (fields or alternatives)
+     */
+    _indexComponentTags(components, parentDef) {
+        if (!components || !Array.isArray(components)) return;
+
+        for (const comp of components) {
+            // Index component's own tags
+            if (comp.tags && Array.isArray(comp.tags)) {
+                for (const tag of comp.tags) {
+                    const tagKey = `${tag.class}:${tag.number}`;
+                    if (!this.byTag.has(tagKey)) {
+                        this.byTag.set(tagKey, []);
+                    }
+                    // Avoid duplicates
+                    if (!this.byTag.get(tagKey).includes(parentDef)) {
+                        this.byTag.get(tagKey).push(parentDef);
+                    }
+                }
+            }
+
+            // Recurse into nested SEQUENCE
+            if (comp.type && comp.type.type_def && comp.type.type_def.components) {
+                this._indexComponentTags(comp.type.type_def.components, parentDef);
+            }
+
+            // Recurse into nested CHOICE
+            if (comp.type && comp.type.type_def && comp.type.type_def.alternatives) {
+                this._indexComponentTags(comp.type.type_def.alternatives, parentDef);
             }
         }
     }
