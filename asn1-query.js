@@ -293,8 +293,10 @@ class ASN1Database {
                 field.defaultValue = comp.default.default;
             }
 
-            // Add tags
-            if (comp.tags && comp.tags.length > 0) {
+            // Add tags - prefer type-level tags (complete) over component-level tags (simplified)
+            if (comp.type && comp.type.tags && comp.type.tags.length > 0) {
+                field.tags = comp.type.tags;
+            } else if (comp.tags && comp.tags.length > 0) {
                 field.tags = comp.tags;
             }
 
@@ -350,8 +352,10 @@ class ASN1Database {
                 name: alt.name
             };
 
-            // Add tags
-            if (alt.tags && alt.tags.length > 0) {
+            // Add tags - prefer type-level tags (complete) over component-level tags (simplified)
+            if (alt.type && alt.type.tags && alt.type.tags.length > 0) {
+                alternative.tags = alt.type.tags;
+            } else if (alt.tags && alt.tags.length > 0) {
                 alternative.tags = alt.tags;
             }
 
