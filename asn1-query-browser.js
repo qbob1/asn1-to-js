@@ -10,8 +10,9 @@
  *
  * Browser-compatible (no Node.js dependencies)
  */
+import {mapType} from './mapType.js'
 
-class ASN1Database {
+export class ASN1Database {
     constructor(jsonData) {
         this.definitions = jsonData;
         this.byName = new Map();
@@ -552,14 +553,8 @@ class ASN1Database {
 
         return output;
     }
-}
 
-// Export for different module systems
-if (typeof module !== 'undefined' && module.exports) {
-    // Node.js
-    module.exports = ASN1Database;
-}
-if (typeof window !== 'undefined') {
-    // Browser global
-    window.ASN1Database = ASN1Database;
+    asTagTree(){
+        return mapType(this.definitions.filter(f=>f.definition?.tags === "")[0], db)
+    }
 }

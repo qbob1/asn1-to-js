@@ -1,2 +1,0 @@
-{ok, Tab} = ets:file2tab("./profile.asn1db").
-ets:tab2list(Tab).

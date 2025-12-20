@@ -7,7 +7,8 @@
   "scripts": {
     "test": "node example.js",
     "convert": "erlc convert_to_json.erl && erl -noshell -s convert_to_json main",
-    "serve": "python3 -m http.server 8000"
+    "serve": "python3 -m http.server 8000",
+    "build": "esbuild --bundle --format=esm ./asn1-query-browser.js > ./bundle.js"
   },
   "keywords": [
     "asn1",
